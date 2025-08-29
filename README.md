@@ -110,7 +110,17 @@ See `db/queries.sql` for:
 
 ## Screenshots
 
-_Add screenshots of your dashboard here after running the app._
+<img width="3198" height="1730" alt="Screenshot 2025-08-30 012102" src="https://github.com/user-attachments/assets/a43eacab-e8b7-4c37-a552-7b8ef7beb683" />
+
+
+<img width="2736" height="1722" alt="Screenshot 2025-08-30 012116" src="https://github.com/user-attachments/assets/e20e00ee-e88c-443d-89d4-3c2d8fac6a6e" />
+
+
+<img width="2816" height="1727" alt="Screenshot 2025-08-30 012137" src="https://github.com/user-attachments/assets/c18b844e-1b8b-4254-bb9a-f927a5e98bf6" />
+
+
+<img width="3199" height="1725" alt="Screenshot 2025-08-30 012155" src="https://github.com/user-attachments/assets/af5e081b-60b4-4303-8ecc-6795d3292fb9" />
+
 
 ## Business KPIs Tracked
 
