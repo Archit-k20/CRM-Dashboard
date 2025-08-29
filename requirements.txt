@@ -1,0 +1,7 @@
+streamlit>=1.22
+pandas>=2.0
+sqlalchemy>=2.0
+pymysql>=1.0
+faker>=18.0
+plotly>=5.0
+python-dotenv>=1.0

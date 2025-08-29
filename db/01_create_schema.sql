@@ -1,0 +1,114 @@
+-- Create schema and tables for CRM analytics (MySQL)
+CREATE DATABASE IF NOT EXISTS crm_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE crm_db;
+
+-- Users (sales reps, managers)
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  email VARCHAR(200) NOT NULL UNIQUE,
+  role ENUM('REP','MANAGER','ADMIN') DEFAULT 'REP',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Sources (lead source)
+CREATE TABLE IF NOT EXISTS sources (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+-- Stages for opportunities
+CREATE TABLE IF NOT EXISTS stages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  stage_order INT DEFAULT 0
+) ENGINE=InnoDB;
+
+-- Customers
+CREATE TABLE IF NOT EXISTS customers (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  company VARCHAR(255),
+  email VARCHAR(255),
+  phone VARCHAR(50),
+  owner_id BIGINT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- Contacts (person at a customer)
+CREATE TABLE IF NOT EXISTS contacts (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  customer_id BIGINT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255),
+  phone VARCHAR(50),
+  role VARCHAR(100),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Leads
+CREATE TABLE IF NOT EXISTS leads (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255),
+  email VARCHAR(255),
+  phone VARCHAR(50),
+  owner_id BIGINT,
+  source_id INT,
+  status ENUM('NEW','CONTACTED','QUALIFIED','CONVERTED','DISCARDED') DEFAULT 'NEW',
+  lead_score INT DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  converted_at DATETIME NULL,
+  FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (source_id) REFERENCES sources(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- Opportunities
+CREATE TABLE IF NOT EXISTS opportunities (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  lead_id BIGINT NULL,
+  customer_id BIGINT NULL,
+  owner_id BIGINT,
+  stage_id INT,
+  value DECIMAL(12,2) DEFAULT 0,
+  status ENUM('OPEN','WON','LOST') DEFAULT 'OPEN',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  stage_entered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  closed_at DATETIME NULL,
+  FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE SET NULL,
+  FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
+  FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (stage_id) REFERENCES stages(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- Opportunity stage history (for avg time-in-stage)
+CREATE TABLE IF NOT EXISTS opportunity_stage_history (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  opportunity_id BIGINT NOT NULL,
+  stage_id INT NOT NULL,
+  entered_at DATETIME NOT NULL,
+  left_at DATETIME NULL,
+  FOREIGN KEY (opportunity_id) REFERENCES opportunities(id) ON DELETE CASCADE,
+  FOREIGN KEY (stage_id) REFERENCES stages(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Activities (calls, emails, meetings) - linked to either lead or opportunity (nullable)
+CREATE TABLE IF NOT EXISTS activities (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  lead_id BIGINT NULL,
+  opportunity_id BIGINT NULL,
+  user_id BIGINT,
+  activity_type ENUM('CALL','EMAIL','MEETING','NOTE','TASK') DEFAULT 'NOTE',
+  subject VARCHAR(255),
+  notes TEXT,
+  due_date DATETIME NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE,
+  FOREIGN KEY (opportunity_id) REFERENCES opportunities(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
